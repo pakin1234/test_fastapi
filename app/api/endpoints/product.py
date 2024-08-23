@@ -1,34 +1,48 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from api.models.schemas import Product, ProductCreate
+import crud
+
+from typing import List
 
 product_router = APIRouter()
 
-# Добавление продукта
-@product_router.post("/add")
-async def read_product():
-    product = "product"
-    return {"new_product": product}
 
-# Обновление продукта
-@product_router.put("/update/{id}")
-async def read_product(id: int):
-    product = "new_name_product"
-    return {"new_product": product}
+@product_router.post("/products/", response_model=Product)
+async def create_product(product: ProductCreate):
+    return await crud.create_product(product)
 
-# Удаление продукта
-@product_router.delete("/delete/{id}")
-async def read_product(id: int):
-    product = "product"
-    return {"delete_product": product}
+@product_router.get("/products/", response_model=List[Product])
+async def get_products(skip: int = 0, limit: int = 10):
+    return await crud.get_product(skip=skip, limit=limit)
 
-# Получение информации о продукте
-@product_router.get("/info/{id}")
-async def read_product(id: int):
-    return {"product_info": "id"}
+@product_router.get("/products/filter/", response_model=List[Product])
+async def get_filtered_products(
+    name: str = None,
+    min_price: int = None,
+    max_price: int = None,
+    category_id: int = None,
+    skip: int = 0,
+    limit: int = 10
+):
+    return await crud.get_filter_product(
+        name=name,
+        min_price=min_price,
+        max_price=max_price,
+        category_id=category_id,
+        skip=skip,
+        limit=limit
+    )
 
-# Список продуктов с фильтрацией по параметрам
-@product_router.get("/info")
-async def read_product():
-    return {"product_info": "id"}
+@product_router.put("/products/{product_id}/", response_model=Product)
+async def update_product(product_id: int, product: ProductCreate):
+    return await crud.update_product(product_id=product_id, new_product_data=product)
+
+@product_router.delete("/products/{product_id}/")
+async def delete_product(product_id: int):
+    result = await crud.delete_product(product_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return result
 
 
 

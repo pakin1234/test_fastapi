@@ -1,2 +1,5 @@
 venv
 .history
+.vscode
+__pycache__
+.env
