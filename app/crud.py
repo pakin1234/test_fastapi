@@ -25,11 +25,15 @@ async def update_product(product_id: int, new_product_data: ProductCreate):
     await database.execute(query)
     return{**new_product_data.model_dump(), "id": product_id}
 
-# !!!нужно сделать так чтобы была проверка на то есть ли этот номер id иначе ошибка!!!
 async def delete_product(product_id: int):
-    query = products.delete().where(products.c.id == product_id)
-    await database.execute(query)
-    return {"message", f"product with {product_id} id was deleted"}
+    query = products.select().where(products.c.id == product_id)
+    product = await database.fetch_one(query)    
+    if not product:
+        return None
+
+    delete_query = products.delete().where(products.c.id == product_id)
+    await database.execute(delete_query)
+    return {"message": f"Product with id {product_id} was deleted"}
 
 async def get_product(skip: int = 0, limit: int = 0):
     query = products.select().offset(skip).limit(limit)
